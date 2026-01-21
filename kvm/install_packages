@@ -1,0 +1,6 @@
+if [ ! -f .deps_installed ]; then
+    echo "Installing kernel build dependencies..."
+    sudo apt update
+    sudo apt install -y build-essential flex bison libssl-dev libelf-dev bc pahole dwarves wget
+    touch .deps_installed
+fi
