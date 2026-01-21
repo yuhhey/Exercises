@@ -11,14 +11,16 @@ import (
 	"strings"
 )
 
+const eut = "./go_shred"
+
 // Build the binary once for all tests
 func TestMain(m *testing.M) {
 	// Build shred binary
-	if err := exec.Command("go", "build", "-o", "./shred").Run(); err != nil {
+	if err := exec.Command("go", "build", "-o", eut).Run(); err != nil {
 		fmt.Printf("Failed to build shred: %v\n", err)
 		os.Exit(1)
 	}
-	defer os.Remove("./shred") // Cleanup after all tests
+	defer os.Remove(eut) // Cleanup after all tests
 	
 	// Run tests
 	os.Exit(m.Run())
@@ -36,7 +38,7 @@ func TestShredBasic(t *testing.T) {
 	}
 	
 	// Shred with 1 pass, remove
-	cmd := exec.Command("./shred", "-n", "1", "-u", fpath)
+	cmd := exec.Command(eut, "-n", "1", "-u", fpath)
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +57,7 @@ func TestShredContentOverwritten(t *testing.T) {
 	os.WriteFile(fpath, orig, 0644)
 	
 	// Shred 1 pass, no remove
-	exec.Command("./shred", "-n", "1", fpath).Run()
+	exec.Command(eut, "-n", "1", fpath).Run()
 	
 	f, err := os.Open(fpath)
 	if err != nil {
@@ -79,7 +81,7 @@ func TestShredZeroPass(t *testing.T) {
 	
 	os.WriteFile(fpath, []byte("data"), 0644)
 	
-	exec.Command("./shred", "-n", "1", "-z", fpath).Run()
+	exec.Command(eut, "-n", "1", "-z", fpath).Run()
 	
 	f, _ := os.Open(fpath)
 	data, _ := io.ReadAll(f)
@@ -97,11 +99,11 @@ func TestShredZeroPass(t *testing.T) {
 func TestShredDir(t *testing.T) {
 	dir := t.TempDir()
 	
-	cmd := exec.Command("./shred", dir)
+	cmd := exec.Command(eut, dir)
 	output, err := cmd.CombinedOutput()
 
 	if (err == nil){
-		t.Fatal("'shred' should return error on directory.")
+		t.Fatalf("%s should return error on directory.", eut)
 	}
 
 	errorOutput := string(output)
@@ -121,11 +123,11 @@ func TestShredDir(t *testing.T) {
 
 func TestShredSpecialFile(t *testing.T) {
 	
-	cmd := exec.Command("./shred", "/dev/null")
+	cmd := exec.Command(eut, "/dev/null")
 	output, err := cmd.CombinedOutput()
 
 	if (err == nil){
-		t.Fatal("'shred' should return error on special file.")
+		t.Fatalf("%s should return error on special file.", eut)
 	}
 
 	errorOutput := string(output)
